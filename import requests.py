@@ -6,10 +6,41 @@ import bs4
 juha = bs4.BeautifulSoup(html, 'html.parser')
 
 for oglas in juha.find_all('div', class_="row bg-white position-relative GO-Results-Row GO-Shadow-B"):
+    podatki = {}
+# dodeljevanje unikatnega id, vsakemu oglasu
     povezava = oglas.find('a')
     url = povezava.get('href')
     if '&display' in url:
         id = int(re.search(r'\d{8}', url).group(0))
+    podatki['id'] = id
+# dodajanje imena
     naslov = oglas.find('div', class_="GO-Results-Naziv bg-dark px-3 py-2 font-weight-bold text-truncate text-white text-decoration-none")
     ime = naslov.find('span').get_text()
-    print({'id': id, 'ime': ime})
+    podatki['ime'] = ime
+# cena
+    ponudba = oglas.find('div', class_="GO-Results-Price-Mid")
+
+    cene = []
+    if ponudba is not None:
+        deli = ponudba.find_all('div') or [ponudba]   # če ni notranjih divov, preveri kar ponudba sam
+        for del_ in deli:
+            besedilo = del_.get_text(strip=True)
+            m = re.search(r'([\d.]+)\s*€', besedilo)
+            if m:
+                cene.append(int(m.group(1).replace('.', '')))
+
+    podatki['cena'] = cene[0] if cene else None
+# pridobivanje tehničnih podatkov o vsakem avtu. Data mora razlikovati med podatki pri top ponudbah in mobilni verziji predstavitve podatkov
+    data = oglas.find('div', class_=lambda c: c and 'Data-Top' in c and 'd-none' not in c)
+    tabela = data.find('table')
+    for vrstica in tabela.find_all('tr'):
+        celica = vrstica.find_all('td')
+        if len(celica) == 2:
+            kljuc = celica[0].get_text(strip = True)
+            vrednost = celica[1].get_text(strip = True)
+            podatki[kljuc] = vrednost
+    print(podatki)
+
+
+
+
