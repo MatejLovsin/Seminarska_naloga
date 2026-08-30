@@ -10,7 +10,7 @@ def izlusci_avte(juha):
     for oglas in juha.find_all('div', class_="row bg-white position-relative GO-Results-Row GO-Shadow-B"):
         podatki = {}
 
-# dodeljevanje unikatnega id, vsakemu oglasu !zaradi načina pridobivanja podatkov se lahko pojavi isti avto večkrat v seznamu - spodaj popravljeno!
+# dodeljevanje unikatnega id, vsakemu oglasu
 
         id = None   # zagotovimo, da se id ne ponovi, če ni najden v URL-ju
         povezava = oglas.find('a')
@@ -75,4 +75,12 @@ for avto in vsi_avti:
     unikatni[avto['id']] = avto
 koncni_seznam = list(unikatni.values())
 
-print(len(koncni_seznam))
+print(koncni_seznam[:10])
+
+# pretvorba v csv
+
+import csv
+import pandas as pd
+
+df = pd.DataFrame(koncni_seznam)
+df.to_csv("avti.csv", index=False, encoding="utf-8-sig")
