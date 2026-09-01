@@ -1,6 +1,3 @@
-with open("podatki/mercedes_stran1.html", encoding="cp1250") as f:
-    html = f.read()
-
 import re
 import bs4
 
@@ -28,6 +25,7 @@ def izlusci_avte(juha):
         podatki['ime'] = ime
 
 # cena
+# zaradi različnih zapisov cene pri različnih oglasih je potrebno več pozornosti in obdelati več različnih možnosti
 
         ponudba = oglas.find('div', class_="GO-Results-Price-Mid")
 
@@ -40,10 +38,13 @@ def izlusci_avte(juha):
                 if m:
                     cene.append(int(m.group(1).replace('.', '')))
 
-        podatki['cena'] = cene[0] if cene else None
+        podatki['cena'] = cene[0] if cene else None  
+
+# cene[0], ker v primeru da so zapolnjeni drugi indeksi je [0] tisti ki dejansko ustreza, ostali so stare cene
 
 # pridobivanje tehničnih podatkov o vsakem avtu. Data mora razlikovati med podatki pri top ponudbah in mobilni verziji predstavitve podatkov
-    
+# d-none se pojavi pri mobilni verziji podatkov, zato nas ne zanima
+
         data = oglas.find('div', class_=lambda c: c and 'Data-Top' in c and 'd-none' not in c)
         tabela = data.find('table')
         for vrstica in tabela.find_all('tr'):
@@ -68,12 +69,14 @@ for ime_datoteke in os.listdir('podatki'):
         soup = bs4.BeautifulSoup(f.read(), 'html.parser')
     vsi_avti.extend(izlusci_avte(soup))
 
-# deduplikacija glede na id avta
+# deduplikacija glede na id avta. list() na koncu za lepšo predstavo v pandas
 
 unikatni = {}
 for avto in vsi_avti:
     unikatni[avto['id']] = avto
 koncni_seznam = list(unikatni.values())
+
+# preverimo da program res dela pravilno in vrne pravilne podatke izluščene iz oglasov preden pretvorimo v csv
 
 print(koncni_seznam[:10])
 
